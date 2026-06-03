@@ -286,7 +286,7 @@ pre {
   margin-bottom: 40px;
 }
 
-.portal-auth, .portal-content, .portal-admin {
+.portal-auth, .portal-content, .portal-admin, .portal-password {
   max-width: 680px;
   margin: 28px auto;
 }
