@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JuGroup — Software & Tech Support</title>
   <meta name="description" content="JuGroup entwickelt moderne Software auf Anfrage und hilft bei Technikproblemen schnell und einfach." />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <header class="navbar">
@@ -100,9 +100,30 @@
       <p class="eyebrow">Kontakt</p>
       <h2>Bereit für dein nächstes Projekt?</h2>
       <p>Schreib JuGroup und erzähl kurz, was du brauchst.</p>
-      <a class="button primary" href="mailto:jumix6544@gmail.com">E-Mail schreiben</a>
+      <button class="button primary" onclick="document.getElementById('emailDialog').showModal()">E-Mail schreiben</button>
     </section>
   </main>
+
+  <dialog id="emailDialog" class="email-dialog">
+    <div class="dialog-box">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="Schließen">×</button>
+      </form>
+      <p class="eyebrow">E-Mail auswählen</p>
+      <h2>Womit möchtest du schreiben?</h2>
+      <p class="dialog-text">Wähle Gmail oder Outlook. Danach öffnet sich direkt eine neue Nachricht an JuGroup.</p>
+      <div class="email-options">
+        <a class="provider-card" target="_blank" rel="noopener noreferrer" href="https://mail.google.com/mail/?view=cm&fs=1&to=jumix6544@gmail.com&su=JuGroup%20Anfrage&body=Hallo%20JuGroup%2C%0A%0Aich%20habe%20eine%20Anfrage%3A%0A">
+          <span>Gmail</span>
+          <small>Mit Google Mail schreiben</small>
+        </a>
+        <a class="provider-card" target="_blank" rel="noopener noreferrer" href="https://outlook.live.com/mail/0/deeplink/compose?to=jumix6544@gmail.com&subject=JuGroup%20Anfrage&body=Hallo%20JuGroup%2C%0A%0Aich%20habe%20eine%20Anfrage%3A%0A">
+          <span>Outlook</span>
+          <small>Mit Outlook schreiben</small>
+        </a>
+      </div>
+    </div>
+  </dialog>
 
   <footer>
     <p>© 2026 JuGroup. Made by Jumix.</p>
