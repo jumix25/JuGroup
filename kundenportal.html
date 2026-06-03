@@ -103,13 +103,8 @@ Konto Beta ist jetzt mit Firebase Login verbunden.
 
   <form class="portal-form" id="admin-order-form">
     <label>
-      Kunden-E-Mail
-      <input id="admin-customer-email" name="customer-email" type="email" required>
-    </label>
-
-    <label>
       Kundennummer
-      <input id="admin-customer-number" name="customer-number" type="text" required>
+      <input id="admin-customer-number" name="customer-number" type="text" placeholder="Leer lassen für neue Nummer">
     </label>
 
     <label>
@@ -181,6 +176,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -226,7 +222,6 @@ const newPasswordConfirm = document.getElementById("new-password-confirm");
 const logoutButton = document.getElementById("logout-button");
 const adminPanel = document.getElementById("admin-panel");
 const adminOrderForm = document.getElementById("admin-order-form");
-const adminCustomerEmail = document.getElementById("admin-customer-email");
 const adminCustomerNumber = document.getElementById("admin-customer-number");
 const adminOrderText = document.getElementById("admin-order-text");
 const adminOrderStatus = document.getElementById("admin-order-status");
@@ -236,6 +231,7 @@ const adminCodeInput = document.getElementById("admin-code-input");
 const orderList = document.getElementById("order-list");
 let activeUser = null;
 let activeUserIsAdmin = false;
+let activeUserCustomerNumber = "";
 
 function setMessage(message) {
   authMessage.textContent = message;
@@ -246,6 +242,102 @@ function appendField(entry, label, value) {
   const line = document.createElement("span");
   line.textContent = `${label}: ${value}`;
   entry.append(line);
+}
+
+async function generateUniqueCustomerNumber() {
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    const candidate = String(Math.floor(100000 + Math.random() * 900000));
+    const numberDoc = doc(db, "customer_numbers", candidate);
+    const snapshot = await getDoc(numberDoc);
+
+    if (!snapshot.exists()) {
+      await setDoc(numberDoc, {
+        createdAt: serverTimestamp()
+      });
+      return candidate;
+    }
+  }
+
+  throw new Error("Keine freie Kundennummer gefunden.");
+}
+
+async function ensureCustomerProfile() {
+  const profileRef = doc(db, "customer_profiles", activeUser.uid);
+  const profile = await getDoc(profileRef);
+
+  if (profile.exists() && profile.data().customerNumber) {
+    activeUserCustomerNumber = profile.data().customerNumber;
+    return;
+  }
+
+  const customerNumber = await generateUniqueCustomerNumber();
+  await setDoc(profileRef, {
+    email: activeUser.email.toLowerCase(),
+    customerNumber,
+    createdAt: serverTimestamp()
+  });
+  activeUserCustomerNumber = customerNumber;
+}
+
+function createOrderEditForm(order, entry) {
+  const form = document.createElement("form");
+  const textLabel = document.createElement("label");
+  const textArea = document.createElement("textarea");
+  const statusLabel = document.createElement("label");
+  const statusSelect = document.createElement("select");
+  const actions = document.createElement("div");
+  const saveButton = document.createElement("button");
+  const cancelButton = document.createElement("button");
+
+  form.className = "portal-form";
+  textLabel.textContent = "Auftrag";
+  textArea.value = order.orderText || order.order_text || "";
+  textArea.required = true;
+  textLabel.append(textArea);
+
+  statusLabel.textContent = "Status";
+  ["Laufend", "Wartet", "Fertig"].forEach((status) => {
+    const option = document.createElement("option");
+    option.value = status;
+    option.textContent = status;
+    option.selected = status === (order.status || "Laufend");
+    statusSelect.append(option);
+  });
+  statusLabel.append(statusSelect);
+
+  actions.className = "hero-actions";
+  saveButton.className = "button primary";
+  saveButton.type = "submit";
+  saveButton.textContent = "Speichern";
+  cancelButton.className = "button secondary";
+  cancelButton.type = "button";
+  cancelButton.textContent = "Abbrechen";
+  actions.append(saveButton, cancelButton);
+
+  form.append(textLabel, statusLabel, actions);
+
+  cancelButton.addEventListener("click", () => loadOrders());
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setMessage("");
+
+    try {
+      await updateDoc(doc(db, "customer_orders", order.id), {
+        orderText: textArea.value.trim(),
+        status: statusSelect.value,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    await loadOrders();
+    setMessage("Auftrag wurde aktualisiert.");
+  });
+
+  entry.append(form);
 }
 
 function renderOrders(orders) {
@@ -272,6 +364,18 @@ function renderOrders(orders) {
 
     if (activeUserIsAdmin && customerEmail) {
       appendField(entry, "Kunden-E-Mail", customerEmail);
+    }
+
+    if (activeUserIsAdmin) {
+      const editButton = document.createElement("button");
+      editButton.className = "button secondary";
+      editButton.type = "button";
+      editButton.textContent = "Bearbeiten";
+      editButton.addEventListener("click", () => {
+        entry.innerHTML = "";
+        createOrderEditForm(order, entry);
+      });
+      entry.append(editButton);
     }
 
     orderList.append(entry);
@@ -302,7 +406,7 @@ async function loadOrders() {
       ? query(collection(db, "customer_orders"))
       : query(
           collection(db, "customer_orders"),
-          where("customerEmail", "==", activeUser.email.toLowerCase())
+          where("customerNumber", "==", activeUserCustomerNumber)
         );
     const snapshot = await getDocs(ordersQuery);
     const orders = snapshot.docs.map((doc) => ({
@@ -397,15 +501,20 @@ passwordForm.addEventListener("submit", async (event) => {
 
 adminOrderForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  setMessage("");
 
   try {
+    const typedCustomerNumber = adminCustomerNumber.value.trim();
+    const customerNumber = typedCustomerNumber || (await generateUniqueCustomerNumber());
+
     await addDoc(collection(db, "customer_orders"), {
-      customerEmail: adminCustomerEmail.value.trim().toLowerCase(),
-      customerNumber: adminCustomerNumber.value.trim(),
+      customerNumber,
       orderText: adminOrderText.value.trim(),
       status: adminOrderStatus.value,
       createdAt: serverTimestamp()
     });
+
+    setMessage(`Auftrag wurde hinzugefügt. Kundennummer: ${customerNumber}`);
   } catch (error) {
     setMessage(error.message);
     return;
@@ -455,6 +564,8 @@ async function updatePortal(user) {
   }
 
   userStatus.textContent = `Eingeloggt als ${activeUser.email}`;
+  await ensureCustomerProfile();
+  userStatus.textContent = `Eingeloggt als ${activeUser.email} · Kundennummer ${activeUserCustomerNumber}`;
   await checkAdmin();
   await loadOrders();
 }
