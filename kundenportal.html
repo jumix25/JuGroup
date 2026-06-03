@@ -19,12 +19,33 @@
 <h1>Kundenportal</h1>
 
 <p>
-Konto Beta ist aktuell in Vorbereitung.
+Konto Beta ist jetzt als lokale Datenbank verfügbar.
 </p>
 
-<p>
-Wenn du Zugang zum Kundenportal brauchst, kontaktiere JuGroup direkt.
-</p>
+<form class="portal-form" id="portal-form">
+  <label>
+    Name
+    <input id="customer-name" name="name" type="text" required>
+  </label>
+
+  <label>
+    E-Mail
+    <input id="customer-email" name="email" type="email" required>
+  </label>
+
+  <label>
+    Projekt
+    <input id="customer-project" name="project" type="text" required>
+  </label>
+
+  <button class="button primary" type="submit">Speichern</button>
+</form>
+
+<div class="portal-database">
+  <h2>Datenbank</h2>
+  <div id="customer-list"></div>
+  <button class="button secondary" id="clear-database" type="button">Daten löschen</button>
+</div>
 
 <a class="button primary"
    href="https://mail.google.com/mail/?view=cm&fs=1&to=jumix6544@gmail.com"
@@ -35,6 +56,68 @@ Wenn du Zugang zum Kundenportal brauchst, kontaktiere JuGroup direkt.
 <p><a href="index.html">Zurück zur Startseite</a></p>
 
 </div>
+
+<script>
+const databaseKey = "jugroupCustomers";
+const form = document.getElementById("portal-form");
+const list = document.getElementById("customer-list");
+const clearButton = document.getElementById("clear-database");
+
+function loadCustomers() {
+  return JSON.parse(localStorage.getItem(databaseKey) || "[]");
+}
+
+function saveCustomers(customers) {
+  localStorage.setItem(databaseKey, JSON.stringify(customers));
+}
+
+function renderCustomers() {
+  const customers = loadCustomers();
+  list.innerHTML = "";
+
+  if (customers.length === 0) {
+    list.innerHTML = "<p>Noch keine Daten gespeichert.</p>";
+    return;
+  }
+
+  customers.forEach((customer) => {
+    const entry = document.createElement("div");
+    const name = document.createElement("strong");
+    const email = document.createElement("span");
+    const project = document.createElement("span");
+
+    entry.className = "portal-entry";
+    name.textContent = customer.name;
+    email.textContent = customer.email;
+    project.textContent = customer.project;
+
+    entry.append(name, email, project);
+    list.append(entry);
+  });
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const customers = loadCustomers();
+  customers.push({
+    name: document.getElementById("customer-name").value,
+    email: document.getElementById("customer-email").value,
+    project: document.getElementById("customer-project").value
+  });
+
+  saveCustomers(customers);
+  form.reset();
+  renderCustomers();
+});
+
+clearButton.addEventListener("click", () => {
+  localStorage.removeItem(databaseKey);
+  renderCustomers();
+});
+
+renderCustomers();
+</script>
 
 </body>
 </html>

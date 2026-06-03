@@ -286,6 +286,52 @@ pre {
   margin-bottom: 40px;
 }
 
+.portal-form {
+  display: grid;
+  gap: 14px;
+  margin: 28px auto;
+  max-width: 520px;
+  text-align: left;
+}
+
+.portal-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.portal-form input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  padding: 0 14px;
+  font: inherit;
+}
+
+.portal-database {
+  max-width: 620px;
+  margin: 30px auto;
+}
+
+.portal-entry {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  padding: 16px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.portal-entry span {
+  color: var(--muted);
+}
+
 footer {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
