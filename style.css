@@ -286,6 +286,11 @@ pre {
   margin-bottom: 40px;
 }
 
+.portal-auth, .portal-content {
+  max-width: 680px;
+  margin: 28px auto;
+}
+
 .portal-form {
   display: grid;
   gap: 14px;
