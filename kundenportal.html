@@ -134,6 +134,19 @@ Konto Beta ist jetzt mit Firebase Login verbunden.
   <h2>Aufträge</h2>
   <div id="order-list"></div>
 </div>
+
+<div class="portal-admin-code" id="admin-code-panel">
+  <h2>Admin-Zugriff</h2>
+
+  <form class="portal-form" id="admin-code-form">
+    <label>
+      Admin-Code
+      <input id="admin-code-input" name="admin-code" type="password" required>
+    </label>
+
+    <button class="button secondary" type="submit">Admin aktivieren</button>
+  </form>
+</div>
 </div>
 
 <a class="button primary"
@@ -161,10 +174,13 @@ import {
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   getFirestore,
   query,
   serverTimestamp,
+  setDoc,
   where
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -187,6 +203,7 @@ if (firebaseConfig.measurementId) {
 }
 
 const adminEmails = ["jumix6544@gmail.com"];
+const adminAccessCode = "JUGROUP-ADMIN-2026";
 
 const authPanel = document.getElementById("auth-panel");
 const loginForm = document.getElementById("login-form");
@@ -213,6 +230,9 @@ const adminCustomerEmail = document.getElementById("admin-customer-email");
 const adminCustomerNumber = document.getElementById("admin-customer-number");
 const adminOrderText = document.getElementById("admin-order-text");
 const adminOrderStatus = document.getElementById("admin-order-status");
+const adminCodePanel = document.getElementById("admin-code-panel");
+const adminCodeForm = document.getElementById("admin-code-form");
+const adminCodeInput = document.getElementById("admin-code-input");
 const orderList = document.getElementById("order-list");
 let activeUser = null;
 let activeUserIsAdmin = false;
@@ -254,9 +274,22 @@ function renderOrders(orders) {
   });
 }
 
-function checkAdmin() {
-  activeUserIsAdmin = adminEmails.includes(activeUser.email.toLowerCase());
+async function checkAdmin() {
+  const isMainAdmin = adminEmails.includes(activeUser.email.toLowerCase());
+  let isPromotedAdmin = false;
+
+  if (!isMainAdmin) {
+    try {
+      const adminDoc = await getDoc(doc(db, "admin_users", activeUser.uid));
+      isPromotedAdmin = adminDoc.exists();
+    } catch (_error) {
+      isPromotedAdmin = false;
+    }
+  }
+
+  activeUserIsAdmin = isMainAdmin || isPromotedAdmin;
   adminPanel.hidden = !activeUserIsAdmin;
+  adminCodePanel.hidden = activeUserIsAdmin;
 }
 
 async function loadOrders() {
@@ -378,12 +411,38 @@ adminOrderForm.addEventListener("submit", async (event) => {
   await loadOrders();
 });
 
+adminCodeForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage("");
+
+  if (adminCodeInput.value !== adminAccessCode) {
+    setMessage("Admin-Code ist falsch.");
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "admin_users", activeUser.uid), {
+      email: activeUser.email.toLowerCase(),
+      promotedAt: serverTimestamp()
+    });
+  } catch (error) {
+    setMessage(error.message);
+    return;
+  }
+
+  adminCodeForm.reset();
+  await checkAdmin();
+  await loadOrders();
+  setMessage("Admin-Zugriff wurde aktiviert.");
+});
+
 async function updatePortal(user) {
   activeUser = user || null;
   activeUserIsAdmin = false;
   authPanel.hidden = Boolean(activeUser);
   portalContent.hidden = !activeUser;
   adminPanel.hidden = true;
+  adminCodePanel.hidden = true;
   passwordPanel.hidden = true;
   orderList.innerHTML = "";
 
@@ -392,7 +451,7 @@ async function updatePortal(user) {
   }
 
   userStatus.textContent = `Eingeloggt als ${activeUser.email}`;
-  checkAdmin();
+  await checkAdmin();
   await loadOrders();
 }
 
