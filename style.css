@@ -317,3 +317,10 @@ footer {
     flex-direction: column;
   }
 }
+.logo-image {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+}
