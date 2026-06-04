@@ -104,7 +104,7 @@ Konto Beta ist jetzt mit Firebase Login verbunden.
   <form class="portal-form" id="admin-order-form">
     <label>
       Kundennummer
-      <input id="admin-customer-number" name="customer-number" type="text" placeholder="Leer lassen für neue Nummer">
+      <input id="admin-customer-number" name="customer-number" type="text" required>
     </label>
 
     <label>
@@ -122,6 +122,31 @@ Konto Beta ist jetzt mit Firebase Login verbunden.
     </label>
 
     <button class="button primary" type="submit">Auftrag hinzufügen</button>
+  </form>
+
+  <h2>Auftrag bearbeiten</h2>
+
+  <form class="portal-form" id="admin-edit-order-form">
+    <label>
+      Auftragsnummer
+      <input id="admin-edit-order-number" name="edit-order-number" type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" required>
+    </label>
+
+    <label>
+      Auftrag
+      <textarea id="admin-edit-order-text" name="edit-order-text" required></textarea>
+    </label>
+
+    <label>
+      Status
+      <select id="admin-edit-order-status" name="edit-order-status">
+        <option value="Laufend">Laufend</option>
+        <option value="Wartet">Wartet</option>
+        <option value="Fertig">Fertig</option>
+      </select>
+    </label>
+
+    <button class="button secondary" type="submit">Auftrag speichern</button>
   </form>
 </div>
 
@@ -167,7 +192,6 @@ import {
   updatePassword
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -225,6 +249,10 @@ const adminOrderForm = document.getElementById("admin-order-form");
 const adminCustomerNumber = document.getElementById("admin-customer-number");
 const adminOrderText = document.getElementById("admin-order-text");
 const adminOrderStatus = document.getElementById("admin-order-status");
+const adminEditOrderForm = document.getElementById("admin-edit-order-form");
+const adminEditOrderNumber = document.getElementById("admin-edit-order-number");
+const adminEditOrderText = document.getElementById("admin-edit-order-text");
+const adminEditOrderStatus = document.getElementById("admin-edit-order-status");
 const adminCodePanel = document.getElementById("admin-code-panel");
 const adminCodeForm = document.getElementById("admin-code-form");
 const adminCodeInput = document.getElementById("admin-code-input");
@@ -261,6 +289,23 @@ async function generateUniqueCustomerNumber() {
   throw new Error("Keine freie Kundennummer gefunden.");
 }
 
+async function generateUniqueOrderNumber() {
+  for (let attempt = 0; attempt < 9999; attempt += 1) {
+    const candidate = String(Math.floor(1 + Math.random() * 9999)).padStart(4, "0");
+    const numberDoc = doc(db, "order_numbers", candidate);
+    const snapshot = await getDoc(numberDoc);
+
+    if (!snapshot.exists()) {
+      await setDoc(numberDoc, {
+        createdAt: serverTimestamp()
+      });
+      return candidate;
+    }
+  }
+
+  throw new Error("Keine freie Auftragsnummer gefunden.");
+}
+
 async function ensureCustomerProfile() {
   const profileRef = doc(db, "customer_profiles", activeUser.uid);
   const profile = await getDoc(profileRef);
@@ -279,65 +324,13 @@ async function ensureCustomerProfile() {
   activeUserCustomerNumber = customerNumber;
 }
 
-function createOrderEditForm(order, entry) {
-  const form = document.createElement("form");
-  const textLabel = document.createElement("label");
-  const textArea = document.createElement("textarea");
-  const statusLabel = document.createElement("label");
-  const statusSelect = document.createElement("select");
-  const actions = document.createElement("div");
-  const saveButton = document.createElement("button");
-  const cancelButton = document.createElement("button");
-
-  form.className = "portal-form";
-  textLabel.textContent = "Auftrag";
-  textArea.value = order.orderText || order.order_text || "";
-  textArea.required = true;
-  textLabel.append(textArea);
-
-  statusLabel.textContent = "Status";
-  ["Laufend", "Wartet", "Fertig"].forEach((status) => {
-    const option = document.createElement("option");
-    option.value = status;
-    option.textContent = status;
-    option.selected = status === (order.status || "Laufend");
-    statusSelect.append(option);
-  });
-  statusLabel.append(statusSelect);
-
-  actions.className = "hero-actions";
-  saveButton.className = "button primary";
-  saveButton.type = "submit";
-  saveButton.textContent = "Speichern";
-  cancelButton.className = "button secondary";
-  cancelButton.type = "button";
-  cancelButton.textContent = "Abbrechen";
-  actions.append(saveButton, cancelButton);
-
-  form.append(textLabel, statusLabel, actions);
-
-  cancelButton.addEventListener("click", () => loadOrders());
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    setMessage("");
-
-    try {
-      await updateDoc(doc(db, "customer_orders", order.id), {
-        orderText: textArea.value.trim(),
-        status: statusSelect.value,
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    await loadOrders();
-    setMessage("Auftrag wurde aktualisiert.");
-  });
-
-  entry.append(form);
+async function customerNumberExists(customerNumber) {
+  const profilesQuery = query(
+    collection(db, "customer_profiles"),
+    where("customerNumber", "==", customerNumber)
+  );
+  const snapshot = await getDocs(profilesQuery);
+  return !snapshot.empty;
 }
 
 function renderOrders(orders) {
@@ -352,6 +345,7 @@ function renderOrders(orders) {
     const entry = document.createElement("div");
     const title = document.createElement("strong");
     const orderText = order.orderText || order.order_text || "Auftrag";
+    const orderNumber = order.orderNumber || order.order_number || order.id || "----";
     const customerNumber = order.customerNumber || order.customer_number || order.kundennummer || "Nicht eingetragen";
     const status = order.status || "Laufend";
     const customerEmail = order.customerEmail || order.customer_email || "";
@@ -359,23 +353,12 @@ function renderOrders(orders) {
     entry.className = "portal-entry";
     title.textContent = orderText;
     entry.append(title);
+    appendField(entry, "Auftragsnummer", orderNumber);
     appendField(entry, "Kundennummer", customerNumber);
     appendField(entry, "Status", status);
 
     if (activeUserIsAdmin && customerEmail) {
       appendField(entry, "Kunden-E-Mail", customerEmail);
-    }
-
-    if (activeUserIsAdmin) {
-      const editButton = document.createElement("button");
-      editButton.className = "button secondary";
-      editButton.type = "button";
-      editButton.textContent = "Bearbeiten";
-      editButton.addEventListener("click", () => {
-        entry.innerHTML = "";
-        createOrderEditForm(order, entry);
-      });
-      entry.append(editButton);
     }
 
     orderList.append(entry);
@@ -504,17 +487,24 @@ adminOrderForm.addEventListener("submit", async (event) => {
   setMessage("");
 
   try {
-    const typedCustomerNumber = adminCustomerNumber.value.trim();
-    const customerNumber = typedCustomerNumber || (await generateUniqueCustomerNumber());
+    const customerNumber = adminCustomerNumber.value.trim();
+    const orderNumber = await generateUniqueOrderNumber();
+    const knownCustomer = await customerNumberExists(customerNumber);
 
-    await addDoc(collection(db, "customer_orders"), {
+    if (!knownCustomer) {
+      setMessage("Diese Kundennummer wurde nicht gefunden.");
+      return;
+    }
+
+    await setDoc(doc(db, "customer_orders", orderNumber), {
+      orderNumber,
       customerNumber,
       orderText: adminOrderText.value.trim(),
       status: adminOrderStatus.value,
       createdAt: serverTimestamp()
     });
 
-    setMessage(`Auftrag wurde hinzugefügt. Kundennummer: ${customerNumber}`);
+    setMessage(`Auftrag wurde hinzugefügt. Auftragsnummer: ${orderNumber}`);
   } catch (error) {
     setMessage(error.message);
     return;
@@ -522,6 +512,36 @@ adminOrderForm.addEventListener("submit", async (event) => {
 
   adminOrderForm.reset();
   await loadOrders();
+});
+
+adminEditOrderForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage("");
+
+  const orderNumber = adminEditOrderNumber.value.trim().padStart(4, "0");
+  const orderRef = doc(db, "customer_orders", orderNumber);
+
+  try {
+    const orderSnapshot = await getDoc(orderRef);
+
+    if (!orderSnapshot.exists()) {
+      setMessage("Diese Auftragsnummer wurde nicht gefunden.");
+      return;
+    }
+
+    await updateDoc(orderRef, {
+      orderText: adminEditOrderText.value.trim(),
+      status: adminEditOrderStatus.value,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    setMessage(error.message);
+    return;
+  }
+
+  adminEditOrderForm.reset();
+  await loadOrders();
+  setMessage(`Auftrag ${orderNumber} wurde gespeichert.`);
 });
 
 adminCodeForm.addEventListener("submit", async (event) => {
