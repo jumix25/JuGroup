@@ -427,7 +427,7 @@ resetPasswordForm.addEventListener("submit", async (event) => {
 
   try {
     await sendPasswordResetEmail(auth, resetPasswordEmail.value, {
-      url: "https://jumix25.github.io/JuGroupSite/kundenportal.html"
+      url: "https://jumix25.github.io/JuGroup/kundenportal.html"
     });
   } catch (error) {
     setMessage(error.message);
