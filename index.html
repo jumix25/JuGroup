@@ -7,107 +7,113 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="noise"></div>
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
 
-<header class="navbar">
-  <a class="brand" href="#">
-    <img src="logo.png" alt="JuGroup Logo" class="logo-image">
-    <span>JuGroup</span>
-  </a>
+  <header class="navbar">
+    <a class="brand" href="#">
+      <img src="logo.png" alt="JuGroup Logo" class="logo-image">
+      <span>JuGroup</span>
+    </a>
 
-  <nav>
-    <a href="#services">Leistungen</a>
-    <a href="#projects">Projekte</a>
-    <a href="#contact">Kontakt</a>
-    <a href="kundenportal.html">Kundenportal</a>
-    <a href="impressum.html">Impressum</a>
-    <a href="datenschutz.html">Datenschutz</a>
-    <a href="agb.html">AGB</a>
-  </nav>
-</header>
+    <nav>
+      <a href="#preview">Preview</a>
+      <a href="#services">Leistungen</a>
+      <a href="#projects">Projekte</a>
+      <a href="#contact">Kontakt</a>
+      <a class="download" href="kundenportal.html">Kundenportal</a>
+    </nav>
+  </header>
 
-<main>
+  <main>
+    <section class="hero">
+      <div class="hero-inner reveal">
+        <img src="logo.png" class="hero-logo" alt="JuGroup Logo">
+        <p class="eyebrow">Ju Group Tech Project</p>
+        <h1>JuGroup</h1>
+        <p class="subtitle">Software, Support, Design und digitale Projekte in einem modernen JuBrowse-Look.</p>
+        <div class="actions hero-actions">
+          <a class="button primary" href="kundenportal.html">Kundenportal öffnen</a>
+          <a class="button ghost secondary" href="#contact">Kontakt aufnehmen</a>
+        </div>
+      </div>
+    </section>
 
-<section class="hero">
-  <div class="hero-window">
-    <h1>Willkommen bei JuGroup</h1>
+    <section id="preview" class="preview-section">
+      <div class="browser reveal">
+        <div class="browser-top">
+          <div class="traffic"><span></span><span></span><span></span></div>
+          <div class="address">jugroup://home</div>
+          <div class="mode">Dark</div>
+        </div>
+        <div class="browser-tabs">
+          <div class="tab active">Start <b>×</b></div>
+          <div class="tab">Kundenportal <b>×</b></div>
+          <div class="tab">Projekte <b>×</b></div>
+          <div class="plus">+</div>
+        </div>
+        <div class="browser-screen">
+          <h2>JuGroup</h2>
+          <p>Software. Support. Design.</p>
+          <div class="shortcut-grid">
+            <div>Software</div>
+            <div>Support</div>
+            <div>Design</div>
+            <div>Portal</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="section">
+      <div class="section-head reveal">
+        <p class="eyebrow">Leistungen</p>
+        <h2>Was JuGroup macht</h2>
+      </div>
+
+      <div class="cards grid">
+        <article class="card reveal"><span>💻</span><h3>Software</h3><p>Individuelle Software, kleine Tools, Webseiten und Automatisierungen auf Anfrage.</p></article>
+        <article class="card reveal"><span>🛠️</span><h3>Tech Support</h3><p>Hilfe bei Technikproblemen, Geräten, Einrichtung und digitalen Fragen.</p></article>
+        <article class="card reveal"><span>🎨</span><h3>Design</h3><p>Logos, Hintergründe, Sticker, Profilbilder und moderne digitale Designs.</p></article>
+      </div>
+    </section>
+
+    <section id="projects" class="section versions-section">
+      <div class="section-head reveal">
+        <p class="eyebrow">Projekte</p>
+        <h2>JuGroup Projekte</h2>
+      </div>
+
+      <div class="timeline reveal">
+        <div class="current"><strong>JuBrowse</strong><span>Browser-Projekt</span></div>
+        <div><strong>JU OS</strong><span>Eigenes OS-Konzept</span></div>
+        <div><strong>JU Helper</strong><span>Support-Tool</span></div>
+        <div><strong>GameNet</strong><span>Gaming-Netzwerk</span></div>
+        <div><strong>The Donate</strong><span>Game-Projekt</span></div>
+        <div><strong>Portal</strong><span>Kundenbereich</span></div>
+      </div>
+    </section>
+
+    <section id="contact" class="section status contact reveal">
+      <p class="eyebrow">Kontakt</p>
+      <h2>Projekt anfragen</h2>
+      <p>Schreib JuGroup direkt per E-Mail oder öffne das Kundenportal.</p>
+      <div class="actions">
+        <a class="button primary" href="mailto:jumix6544@gmail.com">E-Mail schreiben</a>
+        <a class="button ghost secondary" href="kundenportal.html">Kundenportal</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>2026 JuGroup. Made by Jumix.</p>
     <p>
-      Software, Design, Webseiten und Techniklösungen.
+      <a href="impressum.html">Impressum</a> ·
+      <a href="datenschutz.html">Datenschutz</a> ·
+      <a href="kundenportal.html">Kundenportal</a> ·
+      <a href="agb.html">AGB</a>
     </p>
-
-    <div class="hero-actions">
-      <a class="button primary"
-         href="https://jumix25.github.io/JuBrowse/"
-         target="_blank">
-         JuBrowse öffnen
-      </a>
-
-      <a class="button secondary" href="#contact">
-         Kontaktieren
-      </a>
-    </div>
-  </div>
-</section>
-
-<section id="services">
-  <h2>Leistungen</h2>
-
-  <div class="card">
-    <h3>Software</h3>
-    <p>Individuelle Software auf Anfrage.</p>
-  </div>
-
-  <div class="card">
-    <h3>Tech Support</h3>
-    <p>Hilfe bei Technikproblemen.</p>
-  </div>
-
-  <div class="card">
-    <h3>Design</h3>
-    <p>Logos, Hintergründe und Sticker.</p>
-  </div>
-</section>
-
-<section id="projects">
-  <h2>JuBrowse</h2>
-
-  <p>
-    Der Browser von JuGroup.
-  </p>
-
-  <a class="button primary"
-     href="https://jumix25.github.io/JuBrowse/"
-     target="_blank">
-     Zur JuBrowse Website
-  </a>
-</section>
-
-<section id="contact">
-  <h2>Kontakt</h2>
-
-  <a class="button primary"
-     href="https://mail.google.com/mail/?view=cm&fs=1&to=jumix6544@gmail.com"
-     target="_blank">
-     Gmail
-  </a>
-
-  <a class="button secondary"
-     href="https://outlook.live.com/mail/0/deeplink/compose?to=jumix6544@gmail.com"
-     target="_blank">
-     Outlook
-  </a>
-</section>
-
-</main>
-
-<footer>
-  <p>2026 JuGroup. Made by Jumix.</p>
-  <p>
-    <a href="impressum.html">Impressum</a> ·
-    <a href="datenschutz.html">Datenschutz</a> ·
-    <a href="kundenportal.html">Kundenportal</a> ·
-    <a href="agb.html">AGB</a>
-  </p>
-</footer>
-
+  </footer>
 </body>
 </html>
