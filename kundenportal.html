@@ -133,11 +133,6 @@ Konto Beta ist jetzt mit Firebase Login verbunden.
     </label>
 
     <label>
-      Auftrag
-      <textarea id="admin-edit-order-text" name="edit-order-text" required></textarea>
-    </label>
-
-    <label>
       Status
       <select id="admin-edit-order-status" name="edit-order-status">
         <option value="Laufend">Laufend</option>
@@ -251,7 +246,6 @@ const adminOrderText = document.getElementById("admin-order-text");
 const adminOrderStatus = document.getElementById("admin-order-status");
 const adminEditOrderForm = document.getElementById("admin-edit-order-form");
 const adminEditOrderNumber = document.getElementById("admin-edit-order-number");
-const adminEditOrderText = document.getElementById("admin-edit-order-text");
 const adminEditOrderStatus = document.getElementById("admin-edit-order-status");
 const adminCodePanel = document.getElementById("admin-code-panel");
 const adminCodeForm = document.getElementById("admin-code-form");
@@ -530,7 +524,6 @@ adminEditOrderForm.addEventListener("submit", async (event) => {
     }
 
     await updateDoc(orderRef, {
-      orderText: adminEditOrderText.value.trim(),
       status: adminEditOrderStatus.value,
       updatedAt: serverTimestamp()
     });
